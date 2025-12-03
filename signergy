@@ -12,12 +12,11 @@ Remove-Item $zipPath -Force
 
 # Check for existing Asseco installation
 $asseco = Get-WmiObject -Class Win32_Product | Where-Object { $_.Name -match "Asseco" }
+
 if ($asseco) {
     if ($asseco.Version -notmatch "^3\.20") {
-        Write-Host "Removing older Asseco version: $($asseco.Version)"
         $asseco.Uninstall()
     } else {
-        Write-Host "Asseco 3.20 detected — no action needed."
         exit
     }
 }
@@ -26,7 +25,6 @@ if ($asseco) {
 $installer = Get-ChildItem -Path $dest -Filter "UniCredit_SignErgy_Installer.exe" -Recurse | Select-Object -First 1
 if ($installer) {
     Start-Process $installer.FullName -ArgumentList "/SP- /VERYSILENT /NORESTART /SUPPRESSMSGBOXES" -Wait
-    Write-Host "Installation completed."
 } else {
-    Write-Host "Installer not found in extracted files."
+    Write-Host "Installer not found."
 }
