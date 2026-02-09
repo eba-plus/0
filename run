@@ -144,6 +144,56 @@ Write-Host "Installing SafeNet..." -ForegroundColor Cyan
 Start-Process "msiexec.exe" -ArgumentList "/i `"$dest\SafeNetAuthenticationClient-8-x64-8.3.msi`" /quiet /norestart" -Wait
 
 # ===============================
+# Create tutorial & instruction files
+# ===============================
+Write-Host "Creating tutorial files..." -ForegroundColor Cyan
+
+function New-InternetShortcut {
+    param ($path, $url)
+    "[InternetShortcut]`nURL=$url" | Set-Content -Encoding ASCII -Path $path
+}
+
+# Create shortcuts in C:\eba
+New-InternetShortcut -path "$dest\Registracija.url" -url "https://www.unicreditbank.ba/ebank/registracija/index.html"
+New-InternetShortcut -path "$dest\Obnova certifikata.url" -url "https://www.unicreditbank.ba/ebank/reizdavanjeBH/"
+New-InternetShortcut -path "$dest\Upute i ostali linkovi.url" -url "https://www.unicredit.ba/ba/poduzetnici/proizvodi_i_usluge/internet_bankarstvo2.html#linkovizapreuzimanjeaplikacije_4"
+
+# Write instructions
+@"
+1. Registracija – Prva registracija uredjaja nakon sto dobijete podatke putem Poste + fizicki uredjaj:
+
+   Koristite link: https://www.unicreditbank.ba/ebank/registracija/index.html 
+   ili shortcut: Registracija.
+
+   - Pri vrhu ekrana prihvatite SignErgy aplikaciju.
+   - Unesite vase podatke: ID (AAxxxx) i PIN.
+   - Kliknite dugme "Nastavi", potvrdite vase podatke.
+   - Kliknite dugme "Nastavi", ZAPISITE VASU SIFRU ZA OTKLJUCAVANJE – OVO JE JEDINI PUT KAD JE ONA VIDLjIVA I DOSTUPNA.
+   - Klikajte "Nastavi" dok ne dodjete na 100%, zatim izvadite i vratite USB.
+
+   Nakon 2-3 minute pokusajte pristupiti: https://ebaplus.unicreditbank.ba/ebaPlus/
+
+2. Obnova certifikata:
+
+   Koristite link: https://www.unicreditbank.ba/ebank/reizdavanjeBH/ 
+   ili shortcut: Obnova certifikata.
+
+   - Pri vrhu prihvatite SignErgy.
+   - Kliknite "Nastavi" i pratite korake do 100%.
+   - Na 100%, izvadite USB i nakon 5-10 minuta pokusajte pristupiti.
+
+3. Upute i ostali linkovi:
+
+   Koristite link: 
+   https://www.unicredit.ba/ba/poduzetnici/proizvodi_i_usluge/internet_bankarstvo2.html#linkovizapreuzimanjeaplikacije_4 
+   ili shortcut: Upute i ostali linkovi.
+
+   Svi kontakti, dodatne instalacije i linkovi su tamo dostupni.
+
+   Kontakt email: ebaplus@unicreditgroup.ba
+"@ | Set-Content -Encoding UTF8 -Path "$dest\Upute.txt"
+
+# ===============================
 # Shortcuts & finish
 # ===============================
 $desktop = [Environment]::GetFolderPath("Desktop")
