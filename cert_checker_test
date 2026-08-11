@@ -4,31 +4,45 @@ Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "       SMART CARD CERTIFICATE CHECK" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
-
-Write-Host "Checking for smart card..." -ForegroundColor Yellow
-Write-Host "Please make sure your USB token is connected."
+Write-Host "Waiting for smart card/token..." -ForegroundColor Yellow
+Write-Host "Insert the USB token."
+Write-Host "Press Q to quit."
 Write-Host ""
 
-# Run Windows smart-card check
-$output = certutil.exe -scinfo 2>&1 | Out-String
+while ($true) {
 
-if ([string]::IsNullOrWhiteSpace($output)) {
-    Write-Host "No information returned by Windows." -ForegroundColor Red
-    Read-Host "Press Enter to exit"
-    exit
+    if ([Console]::KeyAvailable) {
+        $key = [Console]::ReadKey($true)
+
+        if ($key.Key -eq "Q") {
+            Write-Host "`nExiting..." -ForegroundColor Yellow
+            exit
+        }
+    }
+
+    $output = certutil.exe -scinfo 2>&1 | Out-String
+
+    # If at least one reader no longer says SCARD_STATE_EMPTY,
+    # something has been inserted.
+    if ($output -notmatch "SCARD_STATE_EMPTY") {
+
+        Clear-Host
+
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "       SMART CARD DETECTED" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host ""
+
+        Write-Host $output
+
+        Write-Host ""
+        Write-Host "========================================" -ForegroundColor Cyan
+        Write-Host "       CHECK COMPLETE" -ForegroundColor Green
+        Write-Host "========================================" -ForegroundColor Cyan
+
+        Read-Host "Press Enter to exit"
+        break
+    }
+
+    Start-Sleep -Seconds 1
 }
-
-# Display raw smart-card information
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "SMART CARD INFORMATION" -ForegroundColor Cyan
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host ""
-
-Write-Host $output
-
-Write-Host ""
-Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "CHECK FINISHED" -ForegroundColor Green
-Write-Host "========================================" -ForegroundColor Cyan
-
-Read-Host "Press Enter to exit"
