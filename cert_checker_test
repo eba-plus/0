@@ -5,56 +5,30 @@ Write-Host "       SMART CARD CERTIFICATE CHECK" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check certificates available on the smart card
-$certs = @(Get-ChildItem Cert:\CurrentUser\SmartCard -ErrorAction SilentlyContinue)
+Write-Host "Checking for smart card..." -ForegroundColor Yellow
+Write-Host "Please make sure your USB token is connected."
+Write-Host ""
 
-if ($certs.Count -eq 0) {
-    Write-Host "No smart-card certificate found." -ForegroundColor Red
-    Write-Host ""
-    Write-Host "Make sure your USB token/card is connected."
+# Run Windows smart-card check
+$output = certutil.exe -scinfo 2>&1 | Out-String
+
+if ([string]::IsNullOrWhiteSpace($output)) {
+    Write-Host "No information returned by Windows." -ForegroundColor Red
+    Read-Host "Press Enter to exit"
     exit
 }
 
-Write-Host "Certificate(s) found: $($certs.Count)" -ForegroundColor Green
+# Display raw smart-card information
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "SMART CARD INFORMATION" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-foreach ($cert in $certs) {
+Write-Host $output
 
-    $now = Get-Date
-
-    if ($cert.NotAfter -lt $now) {
-        $status = "EXPIRED"
-        $statusColor = "Red"
-    }
-    elseif ($cert.NotAfter -le $now.AddDays(60)) {
-        $status = "EXPIRING WITHIN 60 DAYS"
-        $statusColor = "Yellow"
-    }
-    else {
-        $status = "VALID"
-        $statusColor = "Green"
-    }
-
-    $daysLeft = ($cert.NotAfter - $now).Days
-
-    Write-Host "----------------------------------------" -ForegroundColor DarkGray
-    Write-Host "Certificate" -ForegroundColor Cyan
-    Write-Host "----------------------------------------"
-
-    Write-Host "Subject       : $($cert.Subject)"
-    Write-Host "Issuer        : $($cert.Issuer)"
-    Write-Host "Serial Number : $($cert.SerialNumber)"
-    Write-Host "Thumbprint    : $($cert.Thumbprint)"
-    Write-Host "Valid From    : $($cert.NotBefore)"
-    Write-Host "Valid Until   : $($cert.NotAfter)"
-    Write-Host "Days Remaining: $daysLeft"
-    Write-Host "Status        : " -NoNewline
-    Write-Host $status -ForegroundColor $statusColor
-    Write-Host ""
-}
-
+Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Check complete." -ForegroundColor Green
+Write-Host "CHECK FINISHED" -ForegroundColor Green
 Write-Host "========================================" -ForegroundColor Cyan
 
 Read-Host "Press Enter to exit"
