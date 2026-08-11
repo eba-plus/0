@@ -1,0 +1,60 @@
+Clear-Host
+
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "       SMART CARD CERTIFICATE CHECK" -ForegroundColor Cyan
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host ""
+
+# Check certificates available on the smart card
+$certs = @(Get-ChildItem Cert:\CurrentUser\SmartCard -ErrorAction SilentlyContinue)
+
+if ($certs.Count -eq 0) {
+    Write-Host "No smart-card certificate found." -ForegroundColor Red
+    Write-Host ""
+    Write-Host "Make sure your USB token/card is connected."
+    exit
+}
+
+Write-Host "Certificate(s) found: $($certs.Count)" -ForegroundColor Green
+Write-Host ""
+
+foreach ($cert in $certs) {
+
+    $now = Get-Date
+
+    if ($cert.NotAfter -lt $now) {
+        $status = "EXPIRED"
+        $statusColor = "Red"
+    }
+    elseif ($cert.NotAfter -le $now.AddDays(60)) {
+        $status = "EXPIRING WITHIN 60 DAYS"
+        $statusColor = "Yellow"
+    }
+    else {
+        $status = "VALID"
+        $statusColor = "Green"
+    }
+
+    $daysLeft = ($cert.NotAfter - $now).Days
+
+    Write-Host "----------------------------------------" -ForegroundColor DarkGray
+    Write-Host "Certificate" -ForegroundColor Cyan
+    Write-Host "----------------------------------------"
+
+    Write-Host "Subject       : $($cert.Subject)"
+    Write-Host "Issuer        : $($cert.Issuer)"
+    Write-Host "Serial Number : $($cert.SerialNumber)"
+    Write-Host "Thumbprint    : $($cert.Thumbprint)"
+    Write-Host "Valid From    : $($cert.NotBefore)"
+    Write-Host "Valid Until   : $($cert.NotAfter)"
+    Write-Host "Days Remaining: $daysLeft"
+    Write-Host "Status        : " -NoNewline
+    Write-Host $status -ForegroundColor $statusColor
+    Write-Host ""
+}
+
+Write-Host "========================================" -ForegroundColor Cyan
+Write-Host "Check complete." -ForegroundColor Green
+Write-Host "========================================" -ForegroundColor Cyan
+
+Read-Host "Press Enter to exit"
